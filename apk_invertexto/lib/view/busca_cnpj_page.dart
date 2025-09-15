@@ -1,17 +1,16 @@
-import 'dart:convert';
-
 import 'package:apk_invertexto/service/invertexto_service.dart';
 import 'package:flutter/material.dart';
 
-class GeradorPessoasPage extends StatefulWidget {
-  const GeradorPessoasPage({super.key});
+class BuscaCnpjPage extends StatefulWidget {
+  const BuscaCnpjPage({super.key});
 
   @override
-  State<GeradorPessoasPage> createState() => _GeradorPessoasPageState();
+  State<BuscaCnpjPage> createState() => _BuscaCnpjPageState();
 }
 
-class _GeradorPessoasPageState extends State<GeradorPessoasPage> {
+class _BuscaCnpjPageState extends State<BuscaCnpjPage> {
   String? campo;
+  String? resultado;
   final apiService = InvertextoService();
 
   @override
@@ -34,21 +33,22 @@ class _GeradorPessoasPageState extends State<GeradorPessoasPage> {
           onPressed: () {
             Navigator.pop(context);
           },
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          icon: Icon(Icons.arrow_back, color: Colors.white),
         ),
       ),
       backgroundColor: Colors.black,
       body: Padding(
-        padding: const EdgeInsets.all(10.0),
+        padding: EdgeInsets.all(10.0),
         child: Column(
           children: <Widget>[
             TextField(
-              decoration: const InputDecoration(
-                labelText: "Campos (ex: name,email)",
+              decoration: InputDecoration(
+                labelText: "Digite um CNPJ",
                 labelStyle: TextStyle(color: Colors.white),
                 border: OutlineInputBorder(),
               ),
-              style: const TextStyle(color: Colors.white, fontSize: 18),
+              keyboardType: TextInputType.number,
+              style: TextStyle(color: Colors.white, fontSize: 18),
               onSubmitted: (value) {
                 setState(() {
                   campo = value;
@@ -57,9 +57,7 @@ class _GeradorPessoasPageState extends State<GeradorPessoasPage> {
             ),
             Expanded(
               child: FutureBuilder(
-                future: apiService.geradorPessoas(
-                  campo != null && campo!.isNotEmpty ? campo : "name",
-                ),
+                future: apiService.buscaCNPJ(campo),
                 builder: (context, snapshot) {
                   switch (snapshot.connectionState) {
                     case ConnectionState.waiting:
@@ -68,7 +66,7 @@ class _GeradorPessoasPageState extends State<GeradorPessoasPage> {
                         width: 200,
                         height: 200,
                         alignment: Alignment.center,
-                        child: const CircularProgressIndicator(
+                        child: CircularProgressIndicator(
                           valueColor: AlwaysStoppedAnimation<Color>(
                             Colors.white,
                           ),
@@ -76,8 +74,8 @@ class _GeradorPessoasPageState extends State<GeradorPessoasPage> {
                         ),
                       );
                     default:
-                      if (snapshot.hasError || snapshot.data == null) {
-                        return Container(); // ou mostrar uma mensagem de erro
+                      if (snapshot.hasError) {
+                        return exibeErro(snapshot.error); 
                       } else {
                         return exibeResultado(context, snapshot);
                       }
@@ -92,17 +90,43 @@ class _GeradorPessoasPageState extends State<GeradorPessoasPage> {
   }
 
   Widget exibeResultado(BuildContext context, AsyncSnapshot snapshot) {
-    final data = snapshot.data as Map<String, dynamic>;
-
-    // Converte o Map em string JSON formatada
-    final jsonStr = const JsonEncoder.withIndent('  ').convert(data);
+    String enderecoCompleto = '';
+    if (snapshot.data != null) {
+      enderecoCompleto += snapshot.data["endereco"]["logradouro"] ?? "Rua não disponível";
+      enderecoCompleto += " ";
+      enderecoCompleto += snapshot.data["endereco"]["numero"] ?? "";
+      enderecoCompleto += "\n";
+      enderecoCompleto += snapshot.data["endereco"]["bairro"] ?? "Bairro não disponível";
+      enderecoCompleto += "\n";
+      enderecoCompleto += snapshot.data["endereco"]["municipio"] ?? "Cidade não disponível";
+      enderecoCompleto += "\n";
+      enderecoCompleto += snapshot.data["endereco"]["uf"] ?? "Estado não disponível";
+      enderecoCompleto += "\n";
+      enderecoCompleto += "CEP: ${snapshot.data["endereco"]["cep"] ?? "CEP não disponível"}";
+      enderecoCompleto += "\n";
+      enderecoCompleto += "Empresa: ${snapshot.data["razao_social"] ?? "Razão social não disponível"}";
+    }
 
     return Padding(
       padding: const EdgeInsets.only(top: 10.0),
       child: Text(
-        jsonStr,
-        style: const TextStyle(color: Colors.white, fontSize: 16),
+        enderecoCompleto,
+        style: const TextStyle(color: Colors.white, fontSize: 18),
         softWrap: true,
+      ),
+    );
+  }
+
+  Widget exibeErro(Object? erro) {
+    return Padding(
+      padding: EdgeInsets.only(top: 10.0), 
+      child: Text(
+        "Ocorreu um erro: $erro",
+        style: TextStyle(
+          color: Colors.red,
+          fontSize: 18,
+        ), 
+        softWrap: true, 
       ),
     );
   }

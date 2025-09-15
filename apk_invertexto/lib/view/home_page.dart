@@ -1,5 +1,5 @@
 import 'package:apk_invertexto/view/busca_cep_page.dart';
-import 'package:apk_invertexto/view/gerador_pessoas_page.dart';
+import 'package:apk_invertexto/view/busca_cnpj_page.dart';
 import 'package:apk_invertexto/view/por_extenso_page.dart';
 import 'package:flutter/material.dart';
 
@@ -68,14 +68,14 @@ class HomePage extends StatelessWidget {
                   Icon(Icons.home, color: Colors.white, size: 50.0),
                   SizedBox(width: 30),
                   Text(
-                    "Gerador de Pessoas",
+                    "Busca CNPJ",
                     style: TextStyle(color: Colors.white, fontSize: 20),
                   ),
                 ],
               ),
               onTap: (){
                 Navigator.push(context, 
-                MaterialPageRoute(builder: (context) => GeradorPessoasPage()));
+                MaterialPageRoute(builder: (context) => BuscaCnpjPage()));
               },
             )
           ],

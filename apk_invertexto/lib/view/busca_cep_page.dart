@@ -76,7 +76,7 @@ class _BuscaCepPageState extends State<BuscaCepPage> {
                       );
                     default:
                       if (snapshot.hasError) {
-                        return Container();  //exibeErro();
+                        return exibeErro(snapshot.error); 
                       } else {
                         return exibeResultado(context, snapshot);
                       }
@@ -107,6 +107,20 @@ class _BuscaCepPageState extends State<BuscaCepPage> {
         enderecoCompleto,
         style: TextStyle(color: Colors.white, fontSize: 18),
         softWrap: true,
+      ),
+    );
+  }
+
+  Widget exibeErro(Object? erro) {
+    return Padding(
+      padding: EdgeInsets.only(top: 10.0), 
+      child: Text(
+        "Ocorreu um erro: $erro",
+        style: TextStyle(
+          color: Colors.red,
+          fontSize: 18,
+        ), 
+        softWrap: true, 
       ),
     );
   }
