@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:apk_agenda_contatos/database/helper/contact_helper.dart';
 import 'package:apk_agenda_contatos/database/model/contact_model.dart';
+import 'package:apk_agenda_contatos/view/contact_page.dart';
 import 'package:flutter/material.dart';
 
 class HomePage extends StatefulWidget {
@@ -44,7 +45,9 @@ class _HomePageState extends State<HomePage> {
       ),
       backgroundColor: Colors.white,
       floatingActionButton: FloatingActionButton(
-        onPressed: () {},
+        onPressed: () {
+          _showContactPage();
+        },
         backgroundColor: Colors.blue,
         child: Icon(Icons.add),
       ),
@@ -60,6 +63,9 @@ class _HomePageState extends State<HomePage> {
 
   Widget _contactCard(BuildContext context, int index) {
     return GestureDetector(
+      onTap: (){
+        _showContactPage(contact: contacts[index]);
+      },
       child: Card(
         child: Padding(
           padding: EdgeInsets.all(10.0),
@@ -109,5 +115,18 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
     );
+  }
+
+  void _showContactPage({Contact? contact}) async{
+    final updatedContact = await Navigator.push(context, MaterialPageRoute(builder: (context) => ContactPage(contact: contact,)));
+    if(updatedContact != null){
+      setState(() {
+        contactHelper.getAllContacts().then((list){
+          setState(() {
+            contacts = list;
+          });
+        });
+      });
+    }
   }
 }
