@@ -4,6 +4,9 @@ import 'package:apk_agenda_contatos/database/helper/contact_helper.dart';
 import 'package:apk_agenda_contatos/database/model/contact_model.dart';
 import 'package:apk_agenda_contatos/view/contact_page.dart';
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
+
+enum OrderOptions { orderAZ, orderZA }
 
 class HomePage extends StatefulWidget {
   HomePage({super.key});
@@ -42,6 +45,21 @@ class _HomePageState extends State<HomePage> {
         title: Text("Agenda de Contatos"),
         backgroundColor: Colors.blue,
         centerTitle: true,
+        actions: <Widget>[
+          PopupMenuButton<OrderOptions>(
+            itemBuilder: (context) => <PopupMenuEntry<OrderOptions>>[
+              const PopupMenuItem<OrderOptions>(
+                value: OrderOptions.orderAZ,
+                child: Text("Ordenar de A-Z"),
+              ),
+              const PopupMenuItem<OrderOptions>(
+                value: OrderOptions.orderZA,
+                child: Text("Ordenar de Z-A"),
+              ),
+            ],
+            onSelected: _orderList,
+          ),
+        ],
       ),
       backgroundColor: Colors.white,
       floatingActionButton: FloatingActionButton(
@@ -63,8 +81,8 @@ class _HomePageState extends State<HomePage> {
 
   Widget _contactCard(BuildContext context, int index) {
     return GestureDetector(
-      onTap: (){
-        _showContactPage(contact: contacts[index]);
+      onTap: () {
+        _showOptions(context, index);
       },
       child: Card(
         child: Padding(
@@ -79,8 +97,7 @@ class _HomePageState extends State<HomePage> {
                   image: DecorationImage(
                     image: contacts[index].img != null
                         ? FileImage(File(contacts[index].img!))
-                        : AssetImage("assets/imgs/avatar.png")
-                              as ImageProvider,
+                        : AssetImage("assets/imgs/avatar.png") as ImageProvider,
                     fit: BoxFit.cover,
                   ),
                 ),
@@ -99,14 +116,12 @@ class _HomePageState extends State<HomePage> {
                     ),
                     Text(
                       contacts[index].email ?? "",
-                      style: TextStyle(
-                        fontSize: 16.0,
-                    ),),
+                      style: TextStyle(fontSize: 16.0),
+                    ),
                     Text(
                       contacts[index].phone ?? "",
-                      style: TextStyle(
-                        fontSize: 18.0,
-                    ),)
+                      style: TextStyle(fontSize: 18.0),
+                    ),
                   ],
                 ),
               ),
@@ -117,16 +132,97 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  void _showContactPage({Contact? contact}) async{
-    final updatedContact = await Navigator.push(context, MaterialPageRoute(builder: (context) => ContactPage(contact: contact,)));
-    if(updatedContact != null){
+  void _showOptions(BuildContext context, int index) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) {
+        return BottomSheet(
+          onClosing: () {},
+          builder: (context) {
+            return Container(
+              padding: EdgeInsets.all(10.0),
+              child: Column(
+                mainAxisSize: MainAxisSize
+                    .min, //tamanho minimo, vai "subir" só o tamanho que precisa para aparcer oq eu tenho
+                children: <Widget>[
+                  TextButton(
+                    onPressed: () {
+                      launch("tel:${contacts[index].phone}");
+                      Navigator.pop(context);
+                    },
+                    child: Text(
+                      "Ligar",
+                      style: TextStyle(color: Colors.green, fontSize: 20.0),
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      _showContactPage(contact: contacts[index]);
+                    },
+                    child: Text(
+                      "Editar",
+                      style: TextStyle(color: Colors.blue, fontSize: 20.0),
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      if (contacts[index].id != null) {
+                        contactHelper.deleteContact(contacts[index].id!);
+                        setState(() {
+                          contacts.removeAt(index);
+                          Navigator.pop(context);
+                        });
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text("Erro: contato não encontrado"),
+                          ),
+                        );
+                      }
+                    },
+                    child: Text(
+                      "Excluir",
+                      style: TextStyle(color: Colors.red, fontSize: 20.0),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _showContactPage({Contact? contact}) async {
+    final updatedContact = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => ContactPage(contact: contact)),
+    );
+    if (updatedContact != null) {
       setState(() {
-        contactHelper.getAllContacts().then((list){
+        contactHelper.getAllContacts().then((list) {
           setState(() {
             contacts = list;
           });
         });
       });
     }
+  }
+
+  void _orderList(OrderOptions result) {
+    switch (result) {
+      case OrderOptions.orderAZ:
+        contacts.sort((a, b) {
+          return a.name.toLowerCase().compareTo(b.name.toLowerCase());
+        });
+        break;
+      case OrderOptions.orderZA:
+        contacts.sort((a, b) {
+          return b.name.toLowerCase().compareTo(a.name.toLowerCase());
+        });
+        break;
+    }
+    setState(() {});
   }
 }

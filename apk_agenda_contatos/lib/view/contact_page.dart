@@ -4,6 +4,7 @@ import 'package:apk_agenda_contatos/database/helper/contact_helper.dart';
 import 'package:apk_agenda_contatos/database/model/contact_model.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 
 class ContactPage extends StatefulWidget {
   final Contact? contact;
@@ -22,6 +23,7 @@ class _ContactPageState extends State<ContactPage> {
   final _imgController = TextEditingController();
   final ContactHelper _helper = ContactHelper();
   final ImagePicker _picker = ImagePicker();
+  final phoneMask = MaskTextInputFormatter(mask: '(##) #####-####', filter: {"#": RegExp(r'[0-9]')});
 
   @override
   void initState() {
@@ -103,6 +105,7 @@ class _ContactPageState extends State<ContactPage> {
                 });
               },
               keyboardType: TextInputType.phone,
+              inputFormatters: [phoneMask],
             ),
           ],
         ),
