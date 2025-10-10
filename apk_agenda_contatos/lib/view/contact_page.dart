@@ -23,7 +23,11 @@ class _ContactPageState extends State<ContactPage> {
   final _imgController = TextEditingController();
   final ContactHelper _helper = ContactHelper();
   final ImagePicker _picker = ImagePicker();
-  final phoneMask = MaskTextInputFormatter(mask: '(##) #####-####', filter: {"#": RegExp(r'[0-9]')});
+  final phoneMask = MaskTextInputFormatter(
+    mask: '(##) #####-####',
+    filter: {"#": RegExp(r'[0-9]')},
+  );
+  final emailRegex = RegExp(r'^[\w\.\-]+@([\w\-]+\.)+[a-zA-Z]{2,4}$');
 
   @override
   void initState() {
@@ -66,7 +70,9 @@ class _ContactPageState extends State<ContactPage> {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   image: DecorationImage(
-                    image: _editContact?.img != null && _editContact!.img!.isNotEmpty
+                    image:
+                        _editContact?.img != null &&
+                            _editContact!.img!.isNotEmpty
                         ? FileImage(File(_editContact!.img!))
                         : AssetImage("assets/imgs/avatar.png") as ImageProvider,
                     fit: BoxFit.cover,
@@ -77,7 +83,7 @@ class _ContactPageState extends State<ContactPage> {
             TextField(
               controller: _nameController,
               decoration: InputDecoration(labelText: "Nome"),
-              onChanged: (text){
+              onChanged: (text) {
                 _userEdited = true;
                 setState(() {
                   _editContact?.name = text;
@@ -87,7 +93,7 @@ class _ContactPageState extends State<ContactPage> {
             TextField(
               controller: _emailController,
               decoration: InputDecoration(labelText: "Email"),
-              onChanged: (text){
+              onChanged: (text) {
                 _userEdited = true;
                 setState(() {
                   _editContact?.email = text;
@@ -98,7 +104,7 @@ class _ContactPageState extends State<ContactPage> {
             TextField(
               controller: _phoneController,
               decoration: InputDecoration(labelText: "Telefone"),
-              onChanged: (text){
+              onChanged: (text) {
                 _userEdited = true;
                 setState(() {
                   _editContact?.phone = text;
@@ -115,28 +121,42 @@ class _ContactPageState extends State<ContactPage> {
 
   Future<void> _selectImage() async {
     final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
-    if(image != null){
+    if (image != null) {
       setState(() {
         _editContact?.img = image.path;
       });
     }
   }
-
+  
   void _saveContact() async {
-    if(_editContact?.img == ""){
+    if (_editContact?.img == "") {
       _editContact?.img = null;
     }
-    if(_editContact?.name != null && _editContact!.name!.isNotEmpty){
-      if(_editContact?.id != null){
-       await _helper.updateContact(_editContact!);
-      }else{
-        await _helper.saveContact(_editContact!);
-      }
-      Navigator.pop(context, _editContact);
-    } else{
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Nome é Obrigatório"))
-      );
+    if (_editContact?.name == null || _editContact!.name!.isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Nome é Obrigatório")));
+      return;
     }
+    final email = _editContact?.email ?? "";
+    if (email.isNotEmpty && !emailRegex.hasMatch(email)) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Email inválido")));
+      return;
+    }
+    final phone = _editContact?.phone?.replaceAll(RegExp(r'[^0-9]'), '') ?? "";
+    if (phone.length < 10) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Telefone deve ter pelo menos 10 números")),
+      );
+      return;
+    }
+    if (_editContact?.id != null) {
+      await _helper.updateContact(_editContact!);
+    } else {
+      await _helper.saveContact(_editContact!);
+    }
+    Navigator.pop(context, _editContact);
   }
 }

@@ -142,8 +142,7 @@ class _HomePageState extends State<HomePage> {
             return Container(
               padding: EdgeInsets.all(10.0),
               child: Column(
-                mainAxisSize: MainAxisSize
-                    .min, //tamanho minimo, vai "subir" só o tamanho que precisa para aparcer oq eu tenho
+                mainAxisSize: MainAxisSize.min, //tamanho minimo, vai "subir" só o tamanho que precisa para aparcer oq eu tenho
                 children: <Widget>[
                   TextButton(
                     onPressed: () {
@@ -166,19 +165,70 @@ class _HomePageState extends State<HomePage> {
                   ),
                   TextButton(
                     onPressed: () {
-                      if (contacts[index].id != null) {
-                        contactHelper.deleteContact(contacts[index].id!);
-                        setState(() {
-                          contacts.removeAt(index);
-                          Navigator.pop(context);
-                        });
-                      } else {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text("Erro: contato não encontrado"),
-                          ),
-                        );
-                      }
+                      Navigator.pop(context); 
+                      showModalBottomSheet(
+                        context: context,
+                        builder: (context) {
+                          return Container(
+                            padding: EdgeInsets.all(20),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  "Deseja realmente excluir este contato?",
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                SizedBox(height: 20),
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceEvenly,
+                                  children: [
+                                    TextButton(
+                                      onPressed: () {
+                                        if (contacts[index].id != null) {
+                                          contactHelper.deleteContact(
+                                            contacts[index].id!,
+                                          );
+                                          setState(() {
+                                            contacts.removeAt(index);
+                                          });
+                                        }
+                                        Navigator.pop(
+                                          context,
+                                        ); 
+                                      },
+                                      child: Text(
+                                        "Excluir",
+                                        style: TextStyle(
+                                          color: Colors.red,
+                                          fontSize: 18,
+                                        ),
+                                      ),
+                                    ),
+                                    TextButton(
+                                      onPressed: () {
+                                        Navigator.pop(
+                                          context,
+                                        );
+                                      },
+                                      child: Text(
+                                        "Cancelar",
+                                        style: TextStyle(
+                                          color: Colors.blue,
+                                          fontSize: 18,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      );
                     },
                     child: Text(
                       "Excluir",
