@@ -22,7 +22,7 @@ class NotesService {
     });
   }
 
-  Future<void> delete(String docId){
-    return notes.doc(docId).delete();
+  Future<void> delete(String docID){
+    return notes.doc(docID).delete();
   }
 }
