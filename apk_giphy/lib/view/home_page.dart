@@ -2,6 +2,7 @@ import 'package:apk_giphy/service/giphy_service.dart';
 import 'package:apk_giphy/view/gif_page.dart';
 import 'package:flutter/material.dart';
 
+// ignore: use_key_in_widget_constructors
 class HomePage extends StatefulWidget {
   @override
   State<HomePage> createState() => _HomePageState();
@@ -12,6 +13,7 @@ class _HomePageState extends State<HomePage> {
   int _offset = 0;
   bool _loadingMore = false;
   bool _isSearching = false;
+  // ignore: prefer_final_fields
   List _gifData = [];
   final GiphyService giphyService = GiphyService();
 
@@ -85,6 +87,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget createGifTable() {
+    // ignore: unused_local_variable
     bool hasMoreGifs = _gifData.length < 25;
     return GridView.builder(
       padding: EdgeInsets.all(10.0),
@@ -100,8 +103,10 @@ class _HomePageState extends State<HomePage> {
 
           );
         }else{
+          // ignore: avoid_unnecessary_containers
           return Container(
             child: GestureDetector(
+              // ignore: sort_child_properties_last
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
