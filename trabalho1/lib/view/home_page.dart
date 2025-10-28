@@ -64,13 +64,13 @@ class HomePage extends StatelessWidget {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.search, color: cianoNeon, size: 35), // maior
+                      Icon(Icons.search, color: cianoNeon, size: 35), 
                       const SizedBox(width: 20),
                       Text(
                         "Buscar Filme",
                         style: TextStyle(
                           color: roxoNeon,
-                          fontSize: 26, // maior
+                          fontSize: 26,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
