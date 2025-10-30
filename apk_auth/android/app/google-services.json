@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1068453648041",
+    "project_id": "auth-julia",
+    "storage_bucket": "auth-julia.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1068453648041:android:aeef2ffd1aafa378823bb8",
+        "android_client_info": {
+          "package_name": "com.example.apk_auth"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDTVCCzKBz75CKchC9bjGJwTUaxYbmnUK0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

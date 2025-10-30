@@ -1,13 +1,48 @@
 import 'package:apk_auth/view/components/my_button.dart';
 import 'package:apk_auth/view/components/my_textfield.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 
-class LoginPage extends StatelessWidget {
+class LoginPage extends StatefulWidget {
   LoginPage({super.key});
-  final usernameController = TextEditingController();
+
+  @override
+  State<LoginPage> createState() => _LoginPageState();
+}
+
+class _LoginPageState extends State<LoginPage> {
+  final userNameController = TextEditingController();
+
   final passwordController = TextEditingController();
 
-  void signUserIn() {}
+  void signUserIn() async {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return Center(child: CircularProgressIndicator());
+      },
+    );
+    try {
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: userNameController.text,
+        password: passwordController.text,
+      );
+      Navigator.pop(context);
+    } on FirebaseAuthException catch (e) {
+      print(e.code);
+      if (e.code == 'invalid-credential') {
+        Navigator.pop(context);
+        showDialog(
+          context: context,
+          builder: (context) {
+            return AlertDialog(title: Text("Usuário ou senha Inválida!"));
+          },
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -26,7 +61,7 @@ class LoginPage extends StatelessWidget {
                 ),
                 SizedBox(height: 25),
                 MyTextfield(
-                  controller: usernameController,
+                  controller: userNameController,
                   hintText: 'Email',
                   obscureText: false,
                 ),
@@ -65,7 +100,7 @@ class LoginPage extends StatelessWidget {
                       child: Text(
                         'Registre-se Agora!',
                         style: TextStyle(
-                          color: Colors.red,
+                          color: Colors.blue,
                           fontWeight: FontWeight.bold,
                           fontSize: 18,
                         ),
@@ -81,3 +116,9 @@ class LoginPage extends StatelessWidget {
     );
   }
 }
+
+
+//npm i -g firebase-tools
+//firebase login
+//flutter pub global activate flutterfire_cli
+//flutterfire config
