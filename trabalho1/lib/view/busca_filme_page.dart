@@ -11,6 +11,7 @@ class BuscaFilmePage extends StatefulWidget {
 class _BuscaFilmePageState extends State<BuscaFilmePage> {
   String? titulo;
   final apiService = BuscaFilmeService();
+  final TextEditingController _controller = TextEditingController();
 
   final Color roxoNeon = const Color(0xFFB026FF);
   final Color cianoNeon = const Color(0xFF00FFF6);
@@ -18,7 +19,7 @@ class _BuscaFilmePageState extends State<BuscaFilmePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      resizeToAvoidBottomInset: false,
+      backgroundColor: Colors.black,
       appBar: AppBar(
         backgroundColor: Colors.black,
         title: const Text(
@@ -28,67 +29,123 @@ class _BuscaFilmePageState extends State<BuscaFilmePage> {
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () {
-            Navigator.pop(context);
-          },
+          onPressed: () => Navigator.pop(context),
         ),
       ),
-      backgroundColor: Colors.black,
       body: Padding(
-        padding: const EdgeInsets.all(10.0),
+        padding: const EdgeInsets.all(16),
         child: Column(
-          children: <Widget>[
-            TextField(
-              decoration: InputDecoration(
-                labelText: "Digite o título do filme em inglês",
-                labelStyle: TextStyle(color: cianoNeon),
-                enabledBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: roxoNeon),
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _controller,
+                    style: const TextStyle(color: Colors.white, fontSize: 18),
+                    decoration: InputDecoration(
+                      labelText: "Digite o título do filme",
+                      labelStyle: const TextStyle(color: Colors.white70),
+                      filled: true,
+                      fillColor: const Color(0xFF1C1C1E),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: cianoNeon, width: 1.5),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: roxoNeon, width: 2),
+                      ),
+                    ),
+                  ),
                 ),
-                focusedBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: cianoNeon, width: 2),
+                const SizedBox(width: 10),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: cianoNeon,
+                    foregroundColor: Colors.black,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  onPressed: () {
+                    if (_controller.text.isEmpty) {
+                      _mostrarErro("Digite um título antes de buscar.");
+                    } else {
+                      FocusScope.of(context).unfocus();
+                      setState(() {
+                        titulo = _controller.text;
+                      });
+                    }
+                  },
+                  child: const Icon(Icons.search, size: 28),
                 ),
-              ),
-              style: const TextStyle(color: Colors.white, fontSize: 18),
-              onSubmitted: (value) {
-                setState(() {
-                  titulo = value;
-                });
-              },
+              ],
             ),
+
+            const SizedBox(height: 20),
+
             Expanded(
-              child: FutureBuilder(
-                future: titulo == null ? null : apiService.buscarFilme(titulo!),
-                builder: (context, snapshot) {
-                  switch (snapshot.connectionState) {
-                    case ConnectionState.waiting:
-                    case ConnectionState.none:
-                      return Container(
-                        width: 200,
-                        height: 200,
-                        alignment: Alignment.center,
-                        child: const CircularProgressIndicator(
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                            Colors.white,
-                          ),
-                          strokeWidth: 5.0,
-                        ),
-                      );
-                    default:
-                      if (snapshot.hasError) {
-                        return exibeErro(snapshot.error);
-                      } else if (!snapshot.hasData) {
+              child: SingleChildScrollView(
+                child: FutureBuilder(
+                  future: titulo == null
+                      ? null
+                      : apiService.buscarFilme(titulo!),
+                  builder: (context, snapshot) {
+                    switch (snapshot.connectionState) {
+                      case ConnectionState.waiting:
+                      case ConnectionState.none:
                         return const Center(
-                          child: Text(
-                            "Digite um título para buscar.",
-                            style: TextStyle(color: Colors.white),
+                          child: Padding(
+                            padding: EdgeInsets.all(30),
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 5,
+                            ),
                           ),
                         );
-                      } else {
-                        return exibeResultado(context, snapshot);
-                      }
-                  }
-                },
+                      default:
+                        if (snapshot.hasError) {
+                          final mensagem = snapshot.error.toString();
+
+                          WidgetsBinding.instance.addPostFrameCallback((
+                            _,
+                          ) async {
+                            if (!mounted) return;
+
+                            setState(() {
+                              titulo = null;
+                            });
+
+                            await _mostrarErro(
+                              mensagem.replaceAll("Exception:", "").trim(),
+                            );
+
+                            if (mounted) {
+                              _controller.clear(); // limpa o campo
+                              FocusScope.of(
+                                // ignore: use_build_context_synchronously
+                                context,
+                              ).nextFocus(); // volta o foco
+                            }
+                          });
+
+                          return const SizedBox();
+                        } else if (!snapshot.hasData) {
+                          return const Center(
+                            child: Text(
+                              "Digite um título para buscar.",
+                              style: TextStyle(
+                                color: Colors.white70,
+                                fontSize: 18,
+                              ),
+                            ),
+                          );
+                        } else {
+                          return _exibeResultado(snapshot.data);
+                        }
+                    }
+                  },
+                ),
               ),
             ),
           ],
@@ -97,117 +154,134 @@ class _BuscaFilmePageState extends State<BuscaFilmePage> {
     );
   }
 
-  Widget exibeResultado(BuildContext context, AsyncSnapshot snapshot) {
-    final dados = snapshot.data;
-
+  Widget _exibeResultado(dynamic dados) {
     if (dados == null) {
-      return const Padding(
-        padding: EdgeInsets.only(top: 10.0),
+      return const Center(
         child: Text(
           "Nenhum resultado encontrado.",
           style: TextStyle(color: Colors.white, fontSize: 18),
         ),
       );
     }
+    final poster =
+        (dados["Poster"] != null &&
+            dados["Poster"] != "N/A" &&
+            dados["Poster"].toString().isNotEmpty)
+        ? dados["Poster"]
+        : null;
 
     return Padding(
-      padding: const EdgeInsets.only(top: 10.0),
+      padding: const EdgeInsets.symmetric(vertical: 16),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Builder(
-            builder: (_) {
-              if (dados["Poster"] != null && dados["Poster"] != "N/A") {
-                return Image.network(
-                  dados["Poster"],
-                  height: 250,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
-                    return Container(
-                      height: 250,
-                      color: Colors.grey[900],
-                      alignment: Alignment.center,
-                      child: const Text(
-                        "Imagem não disponível",
-                        style: TextStyle(color: Colors.red, fontSize: 18),
-                      ),
-                    );
-                  },
-                );
-              } else {
-                return Container(
-                  height: 250,
-                  color: Colors.grey[900],
-                  alignment: Alignment.center,
-                  child: const Text(
-                    "Imagem não disponível",
-                    style: TextStyle(color: Colors.red, fontSize: 18),
-                  ),
-                );
-              }
-            },
+          Center(
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: poster != null
+                  ? Image.network(
+                      poster,
+                      height: 400,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return _posterFallback();
+                      },
+                    )
+                  : _posterFallback(),
+            ),
           ),
           const SizedBox(height: 20),
-          Row(
-            children: [
-              const Icon(Icons.movie, color: Colors.white, size: 22),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  dados["Title"] ?? "Título não disponível",
-                  style: const TextStyle(color: Colors.white, fontSize: 18),
-                ),
-              ),
-            ],
+
+          Text(
+            dados["Title"] ?? "Título não disponível",
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 26,
+              fontWeight: FontWeight.bold,
+            ),
+            textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 8),
+
+          const SizedBox(height: 10),
+
           Row(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const Icon(Icons.calendar_today, color: Colors.white, size: 22),
-              const SizedBox(width: 8),
+              const SizedBox(width: 6),
               Text(
-                dados["Year"] ?? "Não disponível",
+                dados["Year"] ?? "Ano indisponível",
                 style: const TextStyle(color: Colors.white, fontSize: 18),
               ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              const Icon(Icons.star, color: Colors.amber, size: 22),
-              const SizedBox(width: 8),
+              const SizedBox(width: 20),
+              const Icon(Icons.star, color: Colors.amber, size: 24),
+              const SizedBox(width: 6),
               Text(
                 dados["imdbRating"] ?? "Sem avaliação",
                 style: const TextStyle(color: Colors.white, fontSize: 18),
               ),
             ],
           ),
-          const SizedBox(height: 12),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Icon(Icons.description, color: Colors.white, size: 22),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  dados["Plot"] ?? "Sem descrição disponível.",
-                  style: const TextStyle(color: Colors.white, fontSize: 18),
-                ),
-              ),
-            ],
+
+          const SizedBox(height: 20),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Text(
+              dados["Plot"] ?? "Sem descrição disponível.",
+              style: const TextStyle(color: Colors.white70, fontSize: 18),
+              textAlign: TextAlign.justify,
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget exibeErro(Object? erro) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 10.0),
-      child: Text(
-        "Ocorreu um erro: $erro",
-        style: const TextStyle(color: Colors.red, fontSize: 18),
-        softWrap: true,
+  Widget _posterFallback() {
+    return Container(
+      height: 400,
+      width: 270,
+      decoration: BoxDecoration(
+        color: Colors.grey[900],
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.white24, width: 1),
+      ),
+      child: const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.movie_outlined, color: Colors.white54, size: 80),
+            SizedBox(height: 10),
+            Text(
+              "Imagem indisponível",
+              style: TextStyle(color: Colors.white54, fontSize: 16),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _mostrarErro(String mensagem) async {
+    return showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFF1C1C1E),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text(
+          "Ops!",
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+        content: Text(
+          mensagem,
+          style: const TextStyle(color: Colors.white70, fontSize: 16),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("OK", style: TextStyle(color: Colors.cyanAccent)),
+          ),
+        ],
       ),
     );
   }

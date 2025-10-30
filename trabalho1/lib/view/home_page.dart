@@ -19,59 +19,86 @@ class HomePage extends StatelessWidget {
         ),
         centerTitle: true,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            const SizedBox(height: 30),
-            const Text(
-              "Primeiro trabalho da disciplina Desenvolvimento de Dispositivos Móveis\n"
-              "Aluna: Júlia Dambrós\n\n"
-              "Este aplicativo consome a OMDb API, que fornece informações sobre filmes, "
-              "como título, ano, nota do IMDb e sinopse.",
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 20,
-                height: 1.5,
-              ),
+      body: Stack(
+        children: [
+          SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 40),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Text(
+                  "Primeiro trabalho da disciplina\nDesenvolvimento de Dispositivos Móveis",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: cianoNeon,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    height: 1.4,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                const Text(
+                  "Aluna: Júlia Dambrós\n\n"
+                  "Este aplicativo consome a OMDb API, "
+                  "que fornece informações sobre filmes como título, ano, nota do IMDb e sinopse.",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontSize: 17,
+                    height: 1.6,
+                  ),
+                ),
+                const SizedBox(height: 150), 
+              ],
             ),
-            const SizedBox(height: 50),
-            Center(
+          ),
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 35,
+            child: Center(
               child: GestureDetector(
                 onTap: () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (context) => const BuscaFilmePage()),
+                      builder: (context) => const BuscaFilmePage(),
+                    ),
                   );
                 },
                 child: Container(
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(15),
-                    border: Border.all(color: cianoNeon, width: 2),
+                    color: Colors.black,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: cianoNeon, width: 1.5),
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0x66B026FF),
-                        blurRadius: 12,
-                        spreadRadius: 2,
+                        color: cianoNeon.withAlpha(80),
+                        blurRadius: 10,
+                        spreadRadius: 1,
+                      ),
+                      BoxShadow(
+                        color: roxoNeon.withAlpha(60),
+                        blurRadius: 14,
+                        spreadRadius: 1,
                       ),
                     ],
                   ),
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 30, vertical: 25),
+                    horizontal: 35,
+                    vertical: 20,
+                  ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.search, color: cianoNeon, size: 35), 
-                      const SizedBox(width: 20),
+                      Icon(Icons.search, color: cianoNeon, size: 26),
+                      const SizedBox(width: 14),
                       Text(
                         "Buscar Filme",
                         style: TextStyle(
                           color: roxoNeon,
-                          fontSize: 26,
-                          fontWeight: FontWeight.bold,
+                          fontSize: 22,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                     ],
@@ -79,10 +106,9 @@ class HomePage extends StatelessWidget {
                 ),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 }
-
