@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import '../database/helper/livro_helper.dart';
 import '../database/model/livro_model.dart';
@@ -95,7 +96,7 @@ class _LivroPageState extends State<LivroPage> {
     final allGenres = [
       {'name': 'Romance', 'icon': Icons.favorite_border},
       {'name': 'Fantasia', 'icon': Icons.auto_awesome},
-      {'name': 'Ficção', 'icon': Icons.science_outlined},
+      {'name': 'Ficção científica', 'icon': Icons.science_outlined},
       {'name': 'Terror', 'icon': Icons.nightlight_round},
       {'name': 'Suspense', 'icon': Icons.visibility},
       {'name': 'Aventura', 'icon': Icons.landscape_outlined},
@@ -103,6 +104,13 @@ class _LivroPageState extends State<LivroPage> {
       {'name': 'Biografia', 'icon': Icons.person_outline},
       {'name': 'Histórico', 'icon': Icons.history_edu},
       {'name': 'Não-ficção', 'icon': Icons.book_outlined},
+      {'name': 'Drama', 'icon': Icons.theater_comedy},
+      {'name': 'Político', 'icon': Icons.account_balance},
+      {'name': 'Humor', 'icon': Icons.emoji_emotions_outlined},
+      {'name': 'Poesia', 'icon': Icons.menu_book_outlined},
+      {'name': 'Autoajuda', 'icon': Icons.psychology_alt},
+      {'name': 'Religião', 'icon': Icons.church},
+      {'name': 'Tecnologia', 'icon': Icons.computer},
     ];
 
     final selected = genero.isNotEmpty ? genero.split(', ').toSet() : <String>{};
@@ -238,6 +246,13 @@ class _LivroPageState extends State<LivroPage> {
                 controller: _anoCtrl,
                 decoration: const InputDecoration(labelText: 'Ano de publicação'),
                 keyboardType: TextInputType.number,
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly], 
+                validator: (v) {
+                  if (v == null || v.isEmpty) return 'Ano obrigatório';
+                  if (int.tryParse(v) == null) return 'Digite apenas números';
+                  if (v.length != 4) return 'Ano inválido';
+                  return null;
+                },
               ),
               TextFormField(
                 controller: _editoraCtrl,
@@ -250,7 +265,6 @@ class _LivroPageState extends State<LivroPage> {
               ),
               const SizedBox(height: 12),
 
-              // Campo de seleção múltipla de gêneros
               TextFormField(
                 readOnly: true,
                 onTap: _selectGenres,
@@ -291,3 +305,4 @@ class _LivroPageState extends State<LivroPage> {
     );
   }
 }
+

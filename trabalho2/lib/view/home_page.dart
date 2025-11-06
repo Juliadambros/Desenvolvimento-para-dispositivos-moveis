@@ -10,11 +10,12 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
-enum OrderOptions { aZ, zA }
+enum OrderOptions { todos, aZ, zA, lido, lendo, queroLer }
 
 class _HomePageState extends State<HomePage> {
   final LivroHelper helper = LivroHelper();
   List<Livro> livros = [];
+  List<Livro> todosLivros = [];
   bool loading = true;
 
   @override
@@ -26,7 +27,8 @@ class _HomePageState extends State<HomePage> {
   Future<void> _load() async {
     setState(() => loading = true);
     try {
-      livros = await helper.getAll();
+      todosLivros = await helper.getAll();
+      livros = List.from(todosLivros);
     } finally {
       setState(() => loading = false);
     }
@@ -57,7 +59,10 @@ class _HomePageState extends State<HomePage> {
             child: const Text('Excluir'),
             onPressed: () async {
               if (livro.id != null) await helper.delete(livro.id!);
-              setState(() => livros.removeAt(index));
+              setState(() {
+                livros.removeAt(index);
+                todosLivros.removeWhere((l) => l.id == livro.id);
+              });
               Navigator.pop(ctx);
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text('Livro removido')),
@@ -69,12 +74,58 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  void _mostrarOpcoesLivro(Livro livro, int index) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFFFBEED7),
+        title: Text(livro.titulo, style: const TextStyle(color: Color(0xFF7B1E1E))),
+        content: const Text("O que deseja fazer com este livro?"),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              _openForm(livro: livro);
+            },
+            child: const Text("Editar"),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              _confirmDelete(livro, index);
+            },
+            child: const Text("Excluir", style: TextStyle(color: Colors.red)),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text("Cancelar"),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _orderList(OrderOptions option) {
     setState(() {
-      if (option == OrderOptions.aZ) {
-        livros.sort((a, b) => a.titulo.toLowerCase().compareTo(b.titulo.toLowerCase()));
-      } else {
-        livros.sort((a, b) => b.titulo.toLowerCase().compareTo(a.titulo.toLowerCase()));
+      switch (option) {
+        case OrderOptions.todos:
+          livros = List.from(todosLivros);
+          break;
+        case OrderOptions.aZ:
+          livros.sort((a, b) => a.titulo.toLowerCase().compareTo(b.titulo.toLowerCase()));
+          break;
+        case OrderOptions.zA:
+          livros.sort((a, b) => b.titulo.toLowerCase().compareTo(a.titulo.toLowerCase()));
+          break;
+        case OrderOptions.lido:
+          livros = todosLivros.where((l) => l.statusLeitura == 'Lido').toList();
+          break;
+        case OrderOptions.lendo:
+          livros = todosLivros.where((l) => l.statusLeitura == 'Lendo').toList();
+          break;
+        case OrderOptions.queroLer:
+          livros = todosLivros.where((l) => l.statusLeitura == 'Quero ler').toList();
+          break;
       }
     });
   }
@@ -92,8 +143,12 @@ class _HomePageState extends State<HomePage> {
         statusIcon = Icons.menu_book;
         statusColor = Colors.orange;
         break;
-      default:
+      case 'Quero ler':
         statusIcon = Icons.favorite_border;
+        statusColor = Colors.grey;
+        break;
+      default:
+        statusIcon = Icons.help_outline;
         statusColor = Colors.grey;
     }
 
@@ -103,7 +158,7 @@ class _HomePageState extends State<HomePage> {
       elevation: 4,
       margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 14),
       child: InkWell(
-        onTap: () => _openForm(livro: l),
+        onTap: () => _mostrarOpcoesLivro(l, index),
         onLongPress: () => _confirmDelete(l, index),
         borderRadius: BorderRadius.circular(15),
         child: Padding(
@@ -164,10 +219,16 @@ class _HomePageState extends State<HomePage> {
             icon: const Icon(Icons.sort, color: Colors.white),
             onSelected: _orderList,
             itemBuilder: (_) => const [
+              PopupMenuItem(value: OrderOptions.todos, child: Text('Mostrar todos')),
+              PopupMenuDivider(),
               PopupMenuItem(value: OrderOptions.aZ, child: Text('Ordenar A-Z')),
               PopupMenuItem(value: OrderOptions.zA, child: Text('Ordenar Z-A')),
+              PopupMenuDivider(),
+              PopupMenuItem(value: OrderOptions.lido, child: Text('Filtrar: Lidos')),
+              PopupMenuItem(value: OrderOptions.lendo, child: Text('Filtrar: Lendo')),
+              PopupMenuItem(value: OrderOptions.queroLer, child: Text('Filtrar: Quero ler')),
             ],
-          )
+          ),
         ],
       ),
       body: loading
@@ -180,7 +241,7 @@ class _HomePageState extends State<HomePage> {
                       Icon(Icons.menu_book_rounded, size: 80, color: Colors.white70),
                       SizedBox(height: 20),
                       Text(
-                        'Nenhum livro adicionado ainda',
+                        'Nenhum livro encontrado',
                         style: TextStyle(color: Colors.white70, fontSize: 16),
                       )
                     ],
@@ -205,3 +266,5 @@ class _HomePageState extends State<HomePage> {
     );
   }
 }
+
+
