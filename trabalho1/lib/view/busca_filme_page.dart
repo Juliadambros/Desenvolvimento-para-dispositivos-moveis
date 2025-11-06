@@ -286,3 +286,4 @@ class _BuscaFilmePageState extends State<BuscaFilmePage> {
     );
   }
 }
+

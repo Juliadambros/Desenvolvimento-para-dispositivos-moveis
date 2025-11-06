@@ -1,5 +1,6 @@
 import 'package:apk_auth/view/components/my_button.dart';
 import 'package:apk_auth/view/components/my_textfield.dart';
+import 'package:apk_auth/view/register_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -96,7 +97,12 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                     SizedBox(width: 4),
                     GestureDetector(
-                      onTap: () {},
+                      onTap: () {
+                        Navigator.push(
+                          context, 
+                          MaterialPageRoute(
+                          builder: (context)=> RegisterPage()));
+                      },
                       child: Text(
                         'Registre-se Agora!',
                         style: TextStyle(
