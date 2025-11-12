@@ -169,7 +169,7 @@ class _HomePageState extends State<HomePage> {
                 borderRadius: BorderRadius.circular(8),
                 child: l.capaPath != null && l.capaPath!.isNotEmpty
                     ? Image.file(File(l.capaPath!), width: 70, height: 100, fit: BoxFit.cover)
-                    : Image.asset('assets/imgs/book_placeholder.png', width: 70, height: 100, fit: BoxFit.cover),
+                    : Image.asset('assets/imgs/livro.png', width: 70, height: 100, fit: BoxFit.cover),
               ),
               const SizedBox(width: 14),
               Expanded(
